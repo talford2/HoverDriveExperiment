@@ -20,7 +20,6 @@ public class HoverVehicle : MonoBehaviour
 
         var up = Vector3.up;// new Vector3(0, 1f, 0);
 
-
         var down = Vector3.down;// new Vector3(0, -1, 0);
 
         var frontLeftPoint = new Vector3(-2, 0, 2f);
@@ -45,24 +44,31 @@ public class HoverVehicle : MonoBehaviour
         RaycastHit rearRightHit;
         RaycastHit centreHit;
 
-        Physics.Raycast(FrontLeftSphere.position, down, out frontLeftHit);
-        Physics.Raycast(FrontRightSphere.position, down, out frontRightHit);
-        Physics.Raycast(LeftSphere.position, down, out rearLeftHit);
-        Physics.Raycast(RightSphere.position, down, out rearRightHit);
-        Physics.Raycast(centre, down, out centreHit);
+        var isFrontLeftFound = Physics.Raycast(FrontLeftSphere.position, down, out frontLeftHit);
+        var isFrontRightFound = Physics.Raycast(FrontRightSphere.position, down, out frontRightHit);
+        var isBackLeftFound = Physics.Raycast(LeftSphere.position, down, out rearLeftHit);
+        var isBackRightFound = Physics.Raycast(RightSphere.position, down, out rearRightHit);
 
-
-
+        var isCentreFound = Physics.Raycast(centre, down, out centreHit);
 
         var angleHelperForce = 0.1f;
 
-        var frontLeftLift = -Physics.gravity.y * angleHelperForce * (hoverHeight - frontLeftHit.distance * 2);
-        var frontRightLift = -Physics.gravity.y * angleHelperForce * (hoverHeight - frontRightHit.distance * 2);
-        var leftLift = -Physics.gravity.y * angleHelperForce * (hoverHeight - rearLeftHit.distance * 2);
-        var rightLift = -Physics.gravity.y * angleHelperForce * (hoverHeight - rearRightHit.distance * 2);
+        var frontLeftLift = isFrontLeftFound
+            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - frontLeftHit.distance*2)
+            : 0f;
+        var frontRightLift = isFrontRightFound
+            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - frontRightHit.distance*2)
+            : 0f;
+        var leftLift = isBackLeftFound
+            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - rearLeftHit.distance*2)
+            : 0f;
+        var rightLift = isBackRightFound
+            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - rearRightHit.distance*2)
+            : 0f;
 
-        var centreLift = -Physics.gravity.y * (hoverHeight - centreHit.distance);
+        var centreLift = -Physics.gravity.y*(hoverHeight - centreHit.distance);
 
+        // Debug.Log(isCentreFound);
 
         var boost = 150f;
 
@@ -71,12 +77,7 @@ public class HoverVehicle : MonoBehaviour
         GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * leftLift * boost, LeftSphere.position);
         GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * rightLift * boost, RightSphere.position);
 
-        //GetComponentInChildren<Rigidbody>().AddForce(up * centreLift);
-
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(GetComponentInChildren<Rigidbody>().transform.up * centreLift * boost);
-
-
-        //GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * centreLift, centre);
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(up * centreLift * boost);
     }
 
     void Update()
