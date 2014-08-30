@@ -10,17 +10,17 @@ public class HoverVehicle : MonoBehaviour
 
     public Transform CentreSphere;
 
-    void Start()
-    {
-    }
+
+
+    public float StabaliseForce;
+    public float AntiGravityForce;
 
     private void FixedUpdate()
     {
         var hoverHeight = 5f;
 
-        var up = Vector3.up;// new Vector3(0, 1f, 0);
-
-        var down = Vector3.down;// new Vector3(0, -1, 0);
+        var up = Vector3.up;
+        var down = Vector3.down;
 
         var frontLeftPoint = new Vector3(-2, 0, 2f);
         var frontRightPoint = new Vector3(2, 0, 2f);
@@ -51,33 +51,29 @@ public class HoverVehicle : MonoBehaviour
 
         var isCentreFound = Physics.Raycast(centre, down, out centreHit);
 
-        var angleHelperForce = 0.1f;
-
         var frontLeftLift = isFrontLeftFound
-            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - frontLeftHit.distance*2)
+            ? -Physics.gravity.y * (hoverHeight - frontLeftHit.distance * 2)
             : 0f;
         var frontRightLift = isFrontRightFound
-            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - frontRightHit.distance*2)
+            ? -Physics.gravity.y * (hoverHeight - frontRightHit.distance * 2)
             : 0f;
         var leftLift = isBackLeftFound
-            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - rearLeftHit.distance*2)
+            ? -Physics.gravity.y * (hoverHeight - rearLeftHit.distance * 2)
             : 0f;
         var rightLift = isBackRightFound
-            ? -Physics.gravity.y*angleHelperForce*(hoverHeight - rearRightHit.distance*2)
+            ? -Physics.gravity.y * (hoverHeight - rearRightHit.distance * 2)
             : 0f;
 
-        var centreLift = -Physics.gravity.y*(hoverHeight - centreHit.distance);
+        var centreLift = -Physics.gravity.y * (hoverHeight - centreHit.distance);
 
         // Debug.Log(isCentreFound);
 
-        var boost = 150f;
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontLeftLift * StabaliseForce, FrontLeftSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontRightLift * StabaliseForce, FrontRightSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * leftLift * StabaliseForce, LeftSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * rightLift * StabaliseForce, RightSphere.position);
 
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontLeftLift * boost, FrontLeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontRightLift * boost, FrontRightSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * leftLift * boost, LeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * rightLift * boost, RightSphere.position);
-
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(up * centreLift * boost);
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(up * centreLift * AntiGravityForce);
     }
 
     void Update()
