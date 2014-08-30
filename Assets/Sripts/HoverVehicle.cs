@@ -10,10 +10,16 @@ public class HoverVehicle : MonoBehaviour
 
     public Transform CentreSphere;
 
-
-
     public float StabaliseForce;
     public float AntiGravityForce;
+
+    private Camera chaseCamera;
+    private float forwardPower;
+
+    private void Awake()
+    {
+        chaseCamera = Camera.main;
+    }
 
     private void FixedUpdate()
     {
@@ -74,9 +80,15 @@ public class HoverVehicle : MonoBehaviour
         GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * rightLift * StabaliseForce, RightSphere.position);
 
         GetComponentInChildren<Rigidbody>().AddRelativeForce(up * centreLift * AntiGravityForce);
+
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward *forwardPower * 2000f);
     }
 
     void Update()
     {
+        forwardPower = Input.GetAxis("Vertical");
+        Debug.Log(forwardPower);
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position - transform.rotation*new Vector3(0, 0, 10f), 2f*Time.deltaTime);
+        chaseCamera.transform.LookAt(transform.position);
     }
 }
