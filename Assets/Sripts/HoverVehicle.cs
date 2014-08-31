@@ -69,7 +69,7 @@ public class HoverVehicle : MonoBehaviour
         var isBackLeftFound = Physics.Raycast(LeftSphere.position, down, out rearLeftHit);
         var isBackRightFound = Physics.Raycast(RightSphere.position, down, out rearRightHit);
 
-        var isCentreFound = Physics.Raycast(centre, down, out centreHit);
+        var isCentreFound = Physics.Raycast(CentreSphere.position, down, out centreHit);
 
         var frontLeftLift = isFrontLeftFound
             ? -Physics.gravity.y*(hoverHeight - frontLeftHit.distance*DistanceEffect)
@@ -84,10 +84,11 @@ public class HoverVehicle : MonoBehaviour
             ? -Physics.gravity.y*(hoverHeight - rearRightHit.distance*DistanceEffect)
             : 0f;
 
-        var centreLift = -Physics.gravity.y*(hoverHeight - centreHit.distance*DistanceEffect);
+        var centreLift = isCentreFound
+            ? -Physics.gravity.y*hoverHeight
+            : 0f;
 
-        // Debug.Log(isCentreFound);
-
+        Debug.Log(isCentreFound + " - " + centreLift);
 
         var stabaliseForce = AntiGravityForce/1f*StabliseAmount;
 
@@ -112,7 +113,6 @@ public class HoverVehicle : MonoBehaviour
 
         DirectionCube.position = transform.position + transform.rotation*new Vector3(0, 0, 20f);
 
-        Debug.Log(forwardPower);
         chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation*new Vector3(0, 2.5f, -5f), 2f*Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
     }
