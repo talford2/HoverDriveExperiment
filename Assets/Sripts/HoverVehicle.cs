@@ -26,6 +26,9 @@ public class HoverVehicle : MonoBehaviour
     private float forwardCoeff = 50000f;
     private float forwardPower;
 
+    private float strafeCoeff = 50000f;
+    private float strafePower;
+
     private float turnCoeff = 20000f;
     private float turnPower;
 
@@ -97,12 +100,14 @@ public class HoverVehicle : MonoBehaviour
 
         // Control Hovercraft
         GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward*forwardCoeff*forwardPower);
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.right*strafeCoeff*strafePower);
         GetComponentInChildren<Rigidbody>().AddRelativeTorque(0, turnCoeff*turnPower, 0);
     }
 
     private void Update()
     {
         forwardPower = Input.GetAxis("Vertical");
+        strafePower = Input.GetAxis("Horizontal");
         turnPower = Input.GetAxis("Mouse X");
 
         DirectionCube.position = transform.position + transform.rotation*new Vector3(0, 0, 20f);
