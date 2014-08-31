@@ -22,6 +22,11 @@ public class HoverVehicle : MonoBehaviour
 
     public float DistanceMultiplier = 1f;
 
+
+
+    public float MaxHeight = 5f;
+    public float MinHeight = 1f;
+
     private void Awake()
     {
         speeder = GetComponentInChildren<Rigidbody>();
@@ -64,7 +69,7 @@ public class HoverVehicle : MonoBehaviour
 
     private void Update()
     {
-        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation*new Vector3(0, 0, -10f), Time.deltaTime);
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation * new Vector3(0, 0, -10f), Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
     }
 
@@ -74,11 +79,17 @@ public class HoverVehicle : MonoBehaviour
         var isHit = Physics.Raycast(pos, Vector3.down, out hit);
         if (isHit && hit.distance > 0)
         {
-            var f = maxForce * (1f / hit.distance * DistanceMultiplier);
+            var relDist = (hit.distance - MaxHeight) / MaxHeight;
+
+            Debug.Log("h = " + relDist);
+
+            var f = maxForce * relDist;
             if (f > maxForce)
             {
                 f = maxForce;
             }
+
+
             speeder.AddForceAtPosition(Vector3.up * f, pos);
         }
         else
