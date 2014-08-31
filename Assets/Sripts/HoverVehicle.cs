@@ -15,16 +15,18 @@ public class HoverVehicle : MonoBehaviour
     //public float StabaliseForce;
     public float AntiGravityForce;
 
-    [Range(0, 1)]
-    public float StabliseAmount = 0.5f;
+    [Range(0, 1)] public float StabliseAmount = 0.5f;
 
-    [Range(0.001f, 10)]
-    public float DistanceEffect = 2.0f;
+    [Range(0.001f, 10)] public float DistanceEffect = 2.0f;
 
     public float hoverHeight = 5f;
 
     private Camera chaseCamera;
+
+    private float forwardCoeff = 5000f
     private float forwardPower;
+
+    private float turnCoeff = 20000f;
     private float turnPower;
 
     private void Awake()
@@ -67,47 +69,46 @@ public class HoverVehicle : MonoBehaviour
         var isCentreFound = Physics.Raycast(centre, down, out centreHit);
 
         var frontLeftLift = isFrontLeftFound
-            ? -Physics.gravity.y * (hoverHeight - frontLeftHit.distance * DistanceEffect)
+            ? -Physics.gravity.y*(hoverHeight - frontLeftHit.distance*DistanceEffect)
             : 0f;
         var frontRightLift = isFrontRightFound
-            ? -Physics.gravity.y * (hoverHeight - frontRightHit.distance * DistanceEffect)
+            ? -Physics.gravity.y*(hoverHeight - frontRightHit.distance*DistanceEffect)
             : 0f;
         var leftLift = isBackLeftFound
-            ? -Physics.gravity.y * (hoverHeight - rearLeftHit.distance * DistanceEffect)
+            ? -Physics.gravity.y*(hoverHeight - rearLeftHit.distance*DistanceEffect)
             : 0f;
         var rightLift = isBackRightFound
-            ? -Physics.gravity.y * (hoverHeight - rearRightHit.distance * DistanceEffect)
+            ? -Physics.gravity.y*(hoverHeight - rearRightHit.distance*DistanceEffect)
             : 0f;
 
-        var centreLift = -Physics.gravity.y * (hoverHeight - centreHit.distance * DistanceEffect);
+        var centreLift = -Physics.gravity.y*(hoverHeight - centreHit.distance*DistanceEffect);
 
         // Debug.Log(isCentreFound);
 
 
-        var stabaliseForce = AntiGravityForce / 1f * StabliseAmount;
+        var stabaliseForce = AntiGravityForce/1f*StabliseAmount;
 
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontLeftLift * stabaliseForce, FrontLeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * frontRightLift * stabaliseForce, FrontRightSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * leftLift * stabaliseForce, LeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up * rightLift * stabaliseForce, RightSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*frontLeftLift*stabaliseForce, FrontLeftSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*frontRightLift*stabaliseForce, FrontRightSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*leftLift*stabaliseForce, LeftSphere.position);
+        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*rightLift*stabaliseForce, RightSphere.position);
 
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(up * centreLift * AntiGravityForce * (1f - StabliseAmount));
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(up*centreLift*AntiGravityForce*(1f - StabliseAmount));
 
         // Control Hovercraft
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward * forwardPower * 50000f);
-        GetComponentInChildren<Rigidbody>().AddRelativeTorque(0,turnPower * 20000f, 0);
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward*forwardPower*forwardCoeff);
+        GetComponentInChildren<Rigidbody>().AddRelativeTorque(0, turnPower*turnCoeff, 0);
     }
 
-    void Update()
+    private void Update()
     {
         forwardPower = Input.GetAxis("Vertical");
         turnPower = Input.GetAxis("Mouse X");
 
-
         DirectionCube.position = transform.position + transform.rotation*new Vector3(0, 0, 20f);
 
         Debug.Log(forwardPower);
-        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation * new Vector3(0, 2.5f, -5f), 2f * Time.deltaTime);
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation*new Vector3(0, 2.5f, -5f), 2f*Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
     }
 }
