@@ -23,7 +23,7 @@ public class HoverVehicle : MonoBehaviour
 
     private Camera chaseCamera;
 
-    private float forwardCoeff = 5000f
+    private float forwardCoeff = 5000f;
     private float forwardPower;
 
     private float turnCoeff = 20000f;
