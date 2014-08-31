@@ -2,118 +2,83 @@
 
 public class HoverVehicle : MonoBehaviour
 {
-    public Transform FrontLeftSphere;
-    public Transform FrontRightSphere;
+    #region Private Members
 
-    public Transform LeftSphere;
-    public Transform RightSphere;
+    private Rigidbody speeder;
 
-    public Transform CentreSphere;
+    private Vector3 frontLeft;
+    private Vector3 frontRight;
+    private Vector3 rearLeft;
+    private Vector3 rearRight;
+    private Vector3 centre;
 
-    public Transform DirectionCube;
+    #endregion
 
-    //public float StabaliseForce;
-    public float AntiGravityForce;
+    public float MaxStabilityForce = 1f;
 
-    [Range(0, 1)] public float StabliseAmount = 0.5f;
-
-    [Range(0.001f, 10)] public float DistanceEffect = 2.0f;
-
-    public float hoverHeight = 5f;
-
-    private Camera chaseCamera;
-
-    private float forwardCoeff = 50000f;
-    private float forwardPower;
-
-    private float strafeCoeff = 50000f;
-    private float strafePower;
-
-    private float turnCoeff = 20000f;
-    private float turnPower;
+    public float MaxMainForce = 1f;
 
     private void Awake()
     {
-        chaseCamera = Camera.main;
+        speeder = GetComponentInChildren<Rigidbody>();
+
+        frontLeft = gameObject.transform.position + new Vector3(2, 0, 2);
+        frontRight = gameObject.transform.position + new Vector3(-2, 0, 2);
+        rearLeft = gameObject.transform.position + new Vector3(2, 0, -2);
+        rearRight = gameObject.transform.position + new Vector3(-2, 0, -2);
+        centre = gameObject.transform.position + Vector3.zero;
+
+        frontLeft = new Vector3(2, 0, 2);
+        frontRight = new Vector3(-2, 0, 2);
+        rearLeft = new Vector3(2, 0, -2);
+        rearRight = new Vector3(-2, 0, -2);
+        centre = Vector3.zero;
     }
+
+    public Transform Sphere1;
+    public Transform Sphere2;
+    public Transform Sphere3;
+    public Transform Sphere4;
+    public Transform Sphere5;
 
     private void FixedUpdate()
     {
-        var up = Vector3.up;
-        var down = Vector3.down;
+        positionSpheres();
 
-        var frontLeftPoint = new Vector3(-2, 0, 2f);
-        var frontRightPoint = new Vector3(2, 0, 2f);
+        var globalPosition = gameObject.transform.position;
 
-        var leftPoint = new Vector3(-2f, 0, -2);
-        var rightPoint = new Vector3(2f, 0, -2);
-
-        var centre = new Vector3(0, 0, 0);
-
-        FrontLeftSphere.localPosition = frontLeftPoint;
-        FrontRightSphere.localPosition = frontRightPoint;
-
-        LeftSphere.localPosition = leftPoint;
-        RightSphere.localPosition = rightPoint;
-
-        CentreSphere.localPosition = centre;
-
-        RaycastHit frontLeftHit;
-        RaycastHit frontRightHit;
-        RaycastHit rearLeftHit;
-        RaycastHit rearRightHit;
-        RaycastHit centreHit;
-
-        var isFrontLeftFound = Physics.Raycast(FrontLeftSphere.position, down, out frontLeftHit);
-        var isFrontRightFound = Physics.Raycast(FrontRightSphere.position, down, out frontRightHit);
-        var isBackLeftFound = Physics.Raycast(LeftSphere.position, down, out rearLeftHit);
-        var isBackRightFound = Physics.Raycast(RightSphere.position, down, out rearRightHit);
-
-        var isCentreFound = Physics.Raycast(CentreSphere.position, down, out centreHit);
-
-        var frontLeftLift = isFrontLeftFound
-            ? -Physics.gravity.y*(hoverHeight - frontLeftHit.distance*DistanceEffect)
-            : 0f;
-        var frontRightLift = isFrontRightFound
-            ? -Physics.gravity.y*(hoverHeight - frontRightHit.distance*DistanceEffect)
-            : 0f;
-        var leftLift = isBackLeftFound
-            ? -Physics.gravity.y*(hoverHeight - rearLeftHit.distance*DistanceEffect)
-            : 0f;
-        var rightLift = isBackRightFound
-            ? -Physics.gravity.y*(hoverHeight - rearRightHit.distance*DistanceEffect)
-            : 0f;
-
-        var centreLift = isCentreFound
-            ? -Physics.gravity.y*hoverHeight
-            : 0f;
-
-        Debug.Log(isCentreFound + " - " + centreLift);
-
-        var stabaliseForce = AntiGravityForce/1f*StabliseAmount;
-
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*frontLeftLift*stabaliseForce, FrontLeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*frontRightLift*stabaliseForce, FrontRightSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*leftLift*stabaliseForce, LeftSphere.position);
-        GetComponentInChildren<Rigidbody>().AddForceAtPosition(up*rightLift*stabaliseForce, RightSphere.position);
-
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(up*centreLift*AntiGravityForce*(1f - StabliseAmount));
-
-        // Control Hovercraft
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward*forwardCoeff*forwardPower);
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.right*strafeCoeff*strafePower);
-        GetComponentInChildren<Rigidbody>().AddRelativeTorque(0, turnCoeff*turnPower, 0);
+        stabalise(frontLeft + globalPosition, MaxStabilityForce);
+        stabalise(frontRight + globalPosition, MaxStabilityForce);
+        stabalise(rearLeft + globalPosition, MaxStabilityForce);
+        stabalise(rearRight + globalPosition, MaxStabilityForce);
+        stabalise(centre + globalPosition, MaxMainForce);
     }
 
-    private void Update()
+    private void stabalise(Vector3 pos, float maxForce)
     {
-        forwardPower = Input.GetAxis("Vertical");
-        strafePower = Input.GetAxis("Horizontal");
-        turnPower = Input.GetAxis("Mouse X");
+        RaycastHit hit;
+        var isHit = Physics.Raycast(pos, Vector3.down, out hit);
+        if (isHit && hit.distance > 0)
+        {
+            var f = maxForce * (1f / hit.distance);
+            if (f > maxForce)
+            {
+                f = maxForce;
+            }
+            speeder.AddForceAtPosition(Vector3.up * f, pos);
+        }
+        else
+        {
+            Debug.Log("no force!");
+        }
+    }
 
-        DirectionCube.position = transform.position + transform.rotation*new Vector3(0, 0, 20f);
-
-        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation*new Vector3(0, 2.5f, -5f), 2f*Time.deltaTime);
-        chaseCamera.transform.LookAt(transform.position);
+    private void positionSpheres()
+    {
+        Sphere1.localPosition = frontLeft;
+        Sphere2.localPosition = frontRight;
+        Sphere3.localPosition = rearLeft;
+        Sphere4.localPosition = rearRight;
+        Sphere5.localPosition = centre;
     }
 }
