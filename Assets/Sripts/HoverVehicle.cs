@@ -59,6 +59,7 @@ public class HoverVehicle : MonoBehaviour
 
 
         speeder.AddForce(gameObject.transform.forward * Input.GetAxis("Vertical") * 20000f);
+        speeder.AddRelativeTorque(0, 10000f * Input.GetAxis("Horizontal"), 0);
     }
 
     private void Update()
