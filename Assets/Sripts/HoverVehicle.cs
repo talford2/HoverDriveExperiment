@@ -18,15 +18,17 @@ public class HoverVehicle : MonoBehaviour
 
     public float MaxMainForce = 1f;
 
+    public float DistanceMultiplier = 1f;
+
     private void Awake()
     {
         speeder = GetComponentInChildren<Rigidbody>();
 
-        frontLeft = gameObject.transform.position + new Vector3(2, 0, 2);
-        frontRight = gameObject.transform.position + new Vector3(-2, 0, 2);
-        rearLeft = gameObject.transform.position + new Vector3(2, 0, -2);
-        rearRight = gameObject.transform.position + new Vector3(-2, 0, -2);
-        centre = gameObject.transform.position + Vector3.zero;
+        frontLeft = gameObject.transform.position + Sphere1.localPosition;
+        frontRight = gameObject.transform.position + Sphere2.localPosition;
+        rearLeft = gameObject.transform.position + Sphere3.localPosition;
+        rearRight = gameObject.transform.position + Sphere4.localPosition;
+        centre = gameObject.transform.position + Sphere5.localPosition;
 
         frontLeft = new Vector3(2, 0, 2);
         frontRight = new Vector3(-2, 0, 2);
@@ -43,8 +45,6 @@ public class HoverVehicle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        positionSpheres();
-
         var globalPosition = gameObject.transform.position;
 
         stabalise(frontLeft + globalPosition, MaxStabilityForce);
@@ -54,13 +54,18 @@ public class HoverVehicle : MonoBehaviour
         stabalise(centre + globalPosition, MaxMainForce);
     }
 
+    private void Update()
+    {
+        
+    }
+
     private void stabalise(Vector3 pos, float maxForce)
     {
         RaycastHit hit;
         var isHit = Physics.Raycast(pos, Vector3.down, out hit);
         if (isHit && hit.distance > 0)
         {
-            var f = maxForce * (1f / hit.distance);
+            var f = maxForce * (1f / hit.distance * DistanceMultiplier);
             if (f > maxForce)
             {
                 f = maxForce;
@@ -71,14 +76,5 @@ public class HoverVehicle : MonoBehaviour
         {
             Debug.Log("no force!");
         }
-    }
-
-    private void positionSpheres()
-    {
-        Sphere1.localPosition = frontLeft;
-        Sphere2.localPosition = frontRight;
-        Sphere3.localPosition = rearLeft;
-        Sphere4.localPosition = rearRight;
-        Sphere5.localPosition = centre;
     }
 }
