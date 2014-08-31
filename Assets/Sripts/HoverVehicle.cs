@@ -52,11 +52,14 @@ public class HoverVehicle : MonoBehaviour
         stabalise(rearLeft + globalPosition, MaxStabilityForce);
         stabalise(rearRight + globalPosition, MaxStabilityForce);
         stabalise(centre + globalPosition, MaxMainForce);
+
+
+        speeder.AddForce(gameObject.transform.forward * Input.GetAxis("Vertical") * 20000f);
     }
 
     private void Update()
     {
-        
+
     }
 
     private void stabalise(Vector3 pos, float maxForce)
