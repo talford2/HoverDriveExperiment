@@ -23,7 +23,7 @@ public class HoverVehicle : MonoBehaviour
 
     private Camera chaseCamera;
 
-    private float forwardCoeff = 5000f;
+    private float forwardCoeff = 50000f;
     private float forwardPower;
 
     private float turnCoeff = 20000f;
@@ -96,8 +96,8 @@ public class HoverVehicle : MonoBehaviour
         GetComponentInChildren<Rigidbody>().AddRelativeForce(up*centreLift*AntiGravityForce*(1f - StabliseAmount));
 
         // Control Hovercraft
-        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward*forwardPower*forwardCoeff);
-        GetComponentInChildren<Rigidbody>().AddRelativeTorque(0, turnPower*turnCoeff, 0);
+        GetComponentInChildren<Rigidbody>().AddRelativeForce(Vector3.forward*forwardCoeff*forwardPower);
+        GetComponentInChildren<Rigidbody>().AddRelativeTorque(0, turnCoeff*turnPower, 0);
     }
 
     private void Update()
