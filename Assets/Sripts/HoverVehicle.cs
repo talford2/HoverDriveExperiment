@@ -12,6 +12,8 @@ public class HoverVehicle : MonoBehaviour
     private Vector3 rearRight;
     private Vector3 centre;
 
+    private Camera chaseCamera;
+
     #endregion
 
     public float MaxStabilityForce = 1f;
@@ -35,6 +37,8 @@ public class HoverVehicle : MonoBehaviour
         rearLeft = new Vector3(2, 0, -2);
         rearRight = new Vector3(-2, 0, -2);
         centre = Vector3.zero;
+
+        chaseCamera = Camera.main;
     }
 
     public Transform Sphere1;
@@ -59,7 +63,8 @@ public class HoverVehicle : MonoBehaviour
 
     private void Update()
     {
-
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation*new Vector3(0, 0, -10f), Time.deltaTime);
+        chaseCamera.transform.LookAt(transform.position);
     }
 
     private void stabalise(Vector3 pos, float maxForce)
