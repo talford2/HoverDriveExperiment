@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 public class HoverVehicle : MonoBehaviour
 {
@@ -16,16 +17,17 @@ public class HoverVehicle : MonoBehaviour
 
     #endregion
 
-    public float MaxStabilityForce = 1f;
+    public Transform Sphere1;
+    public Transform Sphere2;
+    public Transform Sphere3;
+    public Transform Sphere4;
 
-    public float MaxMainForce = 1f;
+    public float HoverHeight = 3f;
+    public float SpringCoefficient = 60f;
+    public float DampingForce = 40f;
 
-    public float DistanceMultiplier = 1f;
-
-
-
-    public float MaxHeight = 5f;
-    public float MinHeight = 1f;
+    public float MaxForwardThrust = 12000f;
+    public float MaxTurnTorque = 4000f;
 
     private void Awake()
     {
@@ -35,36 +37,44 @@ public class HoverVehicle : MonoBehaviour
         frontRight = gameObject.transform.position + Sphere2.localPosition;
         rearLeft = gameObject.transform.position + Sphere3.localPosition;
         rearRight = gameObject.transform.position + Sphere4.localPosition;
-        centre = gameObject.transform.position + Sphere5.localPosition;
 
-        frontLeft = new Vector3(2, 0, 2);
-        frontRight = new Vector3(-2, 0, 2);
-        rearLeft = new Vector3(2, 0, -2);
-        rearRight = new Vector3(-2, 0, -2);
+        frontLeft = new Vector3(2f, 0, 2f);
+        frontRight = new Vector3(-2f, 0, 2f);
+        rearLeft = new Vector3(2f, 0, -2f);
+        rearRight = new Vector3(-2f, 0, -2f);
         centre = Vector3.zero;
 
         chaseCamera = Camera.main;
     }
 
-    public Transform Sphere1;
-    public Transform Sphere2;
-    public Transform Sphere3;
-    public Transform Sphere4;
-    public Transform Sphere5;
-
     private void FixedUpdate()
     {
-        var globalPosition = gameObject.transform.position;
+        ApplyHoverEngine(transform.TransformPoint(frontLeft));
+        ApplyHoverEngine(transform.TransformPoint(frontRight));
+        ApplyHoverEngine(transform.TransformPoint(rearLeft));
+        ApplyHoverEngine(transform.TransformPoint(rearRight));
 
-        stabalise(frontLeft + globalPosition, MaxStabilityForce);
-        stabalise(frontRight + globalPosition, MaxStabilityForce);
-        stabalise(rearLeft + globalPosition, MaxStabilityForce);
-        stabalise(rearRight + globalPosition, MaxStabilityForce);
-        stabalise(centre + globalPosition, MaxMainForce);
+        var forwardThrust = MaxForwardThrust*Input.GetAxis("Vertical");
+        var turnTorque = MaxTurnTorque*Input.GetAxis("Horizontal");
 
+        rigidbody.AddForce(transform.TransformDirection(Vector3.forward) * forwardThrust);
+        rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
+    }
 
-        speeder.AddForce(gameObject.transform.forward * Input.GetAxis("Vertical") * 20000f);
-        speeder.AddRelativeTorque(0, 10000f * Input.GetAxis("Horizontal"), 0);
+    void ApplyHoverEngine(Vector3 pos)
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(pos + new Vector3(0, -4f, 0), Vector3.down, out hit))
+        {
+            var addForce = 0f;
+            if (hit.distance < HoverHeight)
+            {
+                var heightDifference = (HoverHeight - hit.distance) / HoverHeight;
+                addForce = heightDifference * SpringCoefficient * rigidbody.mass;
+            }
+            addForce -= rigidbody.GetPointVelocity(pos).y * DampingForce;
+            rigidbody.AddForceAtPosition(addForce * Vector3.up/4f, pos);
+        }
     }
 
     private void Update()
@@ -73,24 +83,22 @@ public class HoverVehicle : MonoBehaviour
         chaseCamera.transform.LookAt(transform.position);
     }
 
-    private void stabalise(Vector3 pos, float maxForce)
+    private void Stabalise(Vector3 pos, float maxForce)
     {
         RaycastHit hit;
-        var isHit = Physics.Raycast(pos, Vector3.down, out hit);
+        var isHit = Physics.Raycast(transform.TransformPoint(pos), Vector3.down, out hit);
         if (isHit && hit.distance > 0)
         {
-            var relDist = (hit.distance - MaxHeight) / MaxHeight;
-
-            Debug.Log("h = " + relDist);
-
-            var f = maxForce * relDist;
-            if (f > maxForce)
+            if (hit.distance < 5f)
             {
-                f = maxForce;
+                var relDist = Mathf.Abs((hit.distance - HoverHeight) / HoverHeight);
+
+                //var toCentreOfMass = pos - rigidbody.centerOfMass;
+                //Debug.Log("COM: " + toCentreOfMass.magnitude);
+
+                var force = -Physics.gravity.y*rigidbody.mass/4f;
+                speeder.AddForceAtPosition(Vector3.up * force, pos);
             }
-
-
-            speeder.AddForceAtPosition(Vector3.up * f, pos);
         }
         else
         {
