@@ -49,27 +49,27 @@ public class HoverVehicle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        ApplyHoverEngine(transform.TransformPoint(frontLeft));
-        ApplyHoverEngine(transform.TransformPoint(frontRight));
-        ApplyHoverEngine(transform.TransformPoint(rearLeft));
-        ApplyHoverEngine(transform.TransformPoint(rearRight));
-
         var forwardThrust = MaxForwardThrust*Input.GetAxis("Vertical");
         var turnTorque = MaxTurnTorque*Input.GetAxis("Horizontal");
 
         rigidbody.AddForce(transform.TransformDirection(Vector3.forward) * forwardThrust);
         rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
+
+        ApplyHoverEngine(transform.TransformPoint(frontLeft));
+        ApplyHoverEngine(transform.TransformPoint(frontRight));
+        ApplyHoverEngine(transform.TransformPoint(rearLeft));
+        ApplyHoverEngine(transform.TransformPoint(rearRight));
     }
 
     private void ApplyHoverEngine(Vector3 pos)
     {
         RaycastHit hit;
-        if (Physics.Raycast(pos + new Vector3(0, -4f, 0), Vector3.down, out hit))
+        if (Physics.Raycast(pos + new Vector3(0, -4f, 0), Vector3.down, out hit, HoverHeight))
         {
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
-                var heightDifference = (HoverHeight - hit.distance)/HoverHeight;
+                var heightDifference = Mathf.Abs(HoverHeight - hit.distance)/HoverHeight;
                 addForce = heightDifference*SpringCoefficient*rigidbody.mass;
                 addForce -= rigidbody.GetPointVelocity(pos).y*DampingForce;
             }
