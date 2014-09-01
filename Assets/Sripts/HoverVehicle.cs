@@ -1,17 +1,13 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class HoverVehicle : MonoBehaviour
 {
     #region Private Members
 
-    private Rigidbody speeder;
-
     private Vector3 frontLeft;
     private Vector3 frontRight;
     private Vector3 rearLeft;
     private Vector3 rearRight;
-    private Vector3 centre;
 
     private Camera chaseCamera;
 
@@ -27,13 +23,13 @@ public class HoverVehicle : MonoBehaviour
     public float DampingForce;
 
     public float ThrustAcceleration;
-    public float MaxVelocity;
-    public float MaxTurnTorque;
+    public float MaxThrustVelocity;
+
+    public float TurnAcceleration;
+    public float MaxTurnVelocity;
 
     private void Awake()
     {
-        speeder = GetComponentInChildren<Rigidbody>();
-
         frontLeft = gameObject.transform.position + Sphere1.localPosition;
         frontRight = gameObject.transform.position + Sphere2.localPosition;
         rearLeft = gameObject.transform.position + Sphere3.localPosition;
@@ -43,7 +39,6 @@ public class HoverVehicle : MonoBehaviour
         frontRight = new Vector3(-2f, 0, 2f);
         rearLeft = new Vector3(2f, 0, -2f);
         rearRight = new Vector3(-2f, 0, -2f);
-        centre = Vector3.zero;
 
         chaseCamera = Camera.main;
     }
@@ -51,12 +46,13 @@ public class HoverVehicle : MonoBehaviour
     private void FixedUpdate()
     {
         var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
-        var turnTorque = MaxTurnTorque*Input.GetAxis("Horizontal");
+        var turnTorque = TurnAcceleration*Input.GetAxis("Horizontal");
 
-        if (rigidbody.velocity.magnitude < MaxVelocity)
+        if (rigidbody.velocity.magnitude < MaxThrustVelocity)
             rigidbody.AddForce(transform.TransformDirection(Vector3.forward)*forwardThrust, ForceMode.Acceleration);
 
-        rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
+        if (rigidbody.angularVelocity.magnitude < MaxTurnVelocity)
+            rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0), ForceMode.Acceleration);
 
         ApplyHoverEngine(transform.TransformPoint(frontLeft));
         ApplyHoverEngine(transform.TransformPoint(frontRight));
@@ -84,28 +80,5 @@ public class HoverVehicle : MonoBehaviour
     {
         chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation * new Vector3(0, 0, -10f), Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
-    }
-
-    private void Stabalise(Vector3 pos, float maxForce)
-    {
-        RaycastHit hit;
-        var isHit = Physics.Raycast(transform.TransformPoint(pos), Vector3.down, out hit);
-        if (isHit && hit.distance > 0)
-        {
-            if (hit.distance < 5f)
-            {
-                var relDist = Mathf.Abs((hit.distance - HoverHeight) / HoverHeight);
-
-                //var toCentreOfMass = pos - rigidbody.centerOfMass;
-                //Debug.Log("COM: " + toCentreOfMass.magnitude);
-
-                var force = -Physics.gravity.y*rigidbody.mass/4f;
-                speeder.AddForceAtPosition(Vector3.up * force, pos);
-            }
-        }
-        else
-        {
-            Debug.Log("no force!");
-        }
     }
 }
