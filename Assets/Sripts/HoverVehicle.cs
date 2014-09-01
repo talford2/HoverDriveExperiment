@@ -53,12 +53,8 @@ public class HoverVehicle : MonoBehaviour
         var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
         var turnTorque = MaxTurnTorque*Input.GetAxis("Horizontal");
 
-        Debug.Log("SPEED: " + rigidbody.velocity.magnitude);
         if (rigidbody.velocity.magnitude < MaxVelocity)
             rigidbody.AddForce(transform.TransformDirection(Vector3.forward)*forwardThrust, ForceMode.Acceleration);
-
-        Debug.Log("SPEED: " + rigidbody.velocity.magnitude);
-
 
         rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
 
@@ -73,7 +69,6 @@ public class HoverVehicle : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(pos, Vector3.down, out hit, HoverHeight))
         {
-            Debug.Log(hit.collider.name + "dist: " + hit.distance);
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
