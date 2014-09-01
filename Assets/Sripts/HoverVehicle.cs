@@ -61,7 +61,7 @@ public class HoverVehicle : MonoBehaviour
         rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
     }
 
-    void ApplyHoverEngine(Vector3 pos)
+    private void ApplyHoverEngine(Vector3 pos)
     {
         RaycastHit hit;
         if (Physics.Raycast(pos + new Vector3(0, -4f, 0), Vector3.down, out hit))
@@ -69,11 +69,11 @@ public class HoverVehicle : MonoBehaviour
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
-                var heightDifference = (HoverHeight - hit.distance) / HoverHeight;
-                addForce = heightDifference * SpringCoefficient * rigidbody.mass;
+                var heightDifference = (HoverHeight - hit.distance)/HoverHeight;
+                addForce = heightDifference*SpringCoefficient*rigidbody.mass;
+                addForce -= rigidbody.GetPointVelocity(pos).y*DampingForce;
             }
-            addForce -= rigidbody.GetPointVelocity(pos).y * DampingForce;
-            rigidbody.AddForceAtPosition(addForce * Vector3.up/4f, pos);
+            rigidbody.AddForceAtPosition(addForce*Vector3.up/4f, pos);
         }
     }
 
