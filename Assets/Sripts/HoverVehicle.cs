@@ -22,12 +22,13 @@ public class HoverVehicle : MonoBehaviour
     public Transform Sphere3;
     public Transform Sphere4;
 
-    public float HoverHeight = 3f;
-    public float SpringCoefficient = 60f;
-    public float DampingForce = 40f;
+    public float HoverHeight;
+    public float SpringCoefficient;
+    public float DampingForce;
 
-    public float MaxForwardThrust = 12000f;
-    public float MaxTurnTorque = 4000f;
+    public float ThrustAcceleration;
+    public float MaxVelocity;
+    public float MaxTurnTorque;
 
     private void Awake()
     {
@@ -49,10 +50,16 @@ public class HoverVehicle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var forwardThrust = MaxForwardThrust*Input.GetAxis("Vertical");
+        var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
         var turnTorque = MaxTurnTorque*Input.GetAxis("Horizontal");
 
-        rigidbody.AddForce(transform.TransformDirection(Vector3.forward) * forwardThrust);
+        Debug.Log("SPEED: " + rigidbody.velocity.magnitude);
+        if (rigidbody.velocity.magnitude < MaxVelocity)
+            rigidbody.AddForce(transform.TransformDirection(Vector3.forward)*forwardThrust, ForceMode.Acceleration);
+
+        Debug.Log("SPEED: " + rigidbody.velocity.magnitude);
+
+
         rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0));
 
         ApplyHoverEngine(transform.TransformPoint(frontLeft));
@@ -64,8 +71,9 @@ public class HoverVehicle : MonoBehaviour
     private void ApplyHoverEngine(Vector3 pos)
     {
         RaycastHit hit;
-        if (Physics.Raycast(pos + new Vector3(0, -4f, 0), Vector3.down, out hit, HoverHeight))
+        if (Physics.Raycast(pos, Vector3.down, out hit, HoverHeight))
         {
+            Debug.Log(hit.collider.name + "dist: " + hit.distance);
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
