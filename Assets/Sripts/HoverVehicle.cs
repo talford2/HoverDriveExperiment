@@ -48,11 +48,11 @@ public class HoverVehicle : MonoBehaviour
         var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
         var turnTorque = TurnAcceleration*Input.GetAxis("Horizontal");
 
-        if (rigidbody.velocity.magnitude < MaxThrustVelocity)
-            rigidbody.AddForce(transform.TransformDirection(Vector3.forward)*forwardThrust, ForceMode.Acceleration);
-
         if (rigidbody.angularVelocity.magnitude < MaxTurnVelocity)
             rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0), ForceMode.Acceleration);
+
+        if (rigidbody.velocity.magnitude < MaxThrustVelocity)
+            rigidbody.AddRelativeForce(Vector3.forward * forwardThrust, ForceMode.Acceleration);
 
         ApplyHoverEngine(transform.TransformPoint(frontLeft));
         ApplyHoverEngine(transform.TransformPoint(frontRight));
@@ -78,7 +78,7 @@ public class HoverVehicle : MonoBehaviour
 
     private void Update()
     {
-        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.rotation * new Vector3(0, 0, -10f), Time.deltaTime);
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.localRotation * new Vector3(0, 0, -10f), Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
     }
 }
