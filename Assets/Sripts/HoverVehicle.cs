@@ -28,6 +28,8 @@ public class HoverVehicle : MonoBehaviour
     public float TurnAcceleration;
     public float MaxTurnVelocity;
 
+    public float DragMultiplier;
+
     private void Awake()
     {
         frontLeft = gameObject.transform.position + Sphere1.localPosition;
@@ -60,18 +62,18 @@ public class HoverVehicle : MonoBehaviour
         ApplyHoverEngine(transform.TransformPoint(rearRight));
 
         // Drag to mimic wind resistence
-
+        
         // Get the current magnitude
-        var mag = rigidbody.velocity.magnitude;
+        var speed = rigidbody.velocity.magnitude;
 
         // Apply drag in all directions
-        rigidbody.velocity = rigidbody.velocity * 0.98f;
-
+        rigidbody.velocity *= DragMultiplier;
+        
         // Reduce the drag for the forward direction
-        rigidbody.AddRelativeForce(Vector3.forward * mag * 0.9f, ForceMode.Acceleration);
+        rigidbody.AddRelativeForce(Vector3.forward * speed * 0.9f, ForceMode.Acceleration);
 
         // Reduce the drag for the vertical direction
-        rigidbody.AddRelativeForce(Vector3.down * mag, ForceMode.Acceleration);
+        rigidbody.AddRelativeForce(Vector3.down * speed, ForceMode.Acceleration);
     }
 
     private void ApplyHoverEngine(Vector3 pos)
