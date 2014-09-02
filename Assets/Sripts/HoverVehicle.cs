@@ -45,8 +45,8 @@ public class HoverVehicle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
-        var turnTorque = TurnAcceleration*Input.GetAxis("Horizontal");
+        var forwardThrust = ThrustAcceleration * Input.GetAxis("Vertical");
+        var turnTorque = TurnAcceleration * Input.GetAxis("Horizontal");
 
         if (rigidbody.angularVelocity.magnitude < MaxTurnVelocity)
             rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0), ForceMode.Acceleration);
@@ -58,6 +58,20 @@ public class HoverVehicle : MonoBehaviour
         ApplyHoverEngine(transform.TransformPoint(frontRight));
         ApplyHoverEngine(transform.TransformPoint(rearLeft));
         ApplyHoverEngine(transform.TransformPoint(rearRight));
+
+        // Drag to mimic wind resistence
+
+        // Get the current magnitude
+        var mag = rigidbody.velocity.magnitude;
+
+        // Apply drag in all directions
+        rigidbody.velocity = rigidbody.velocity * 0.98f;
+
+        // Reduce the drag for the forward direction
+        rigidbody.AddRelativeForce(Vector3.forward * mag * 0.9f, ForceMode.Acceleration);
+
+        // Reduce the drag for the vertical direction
+        rigidbody.AddRelativeForce(Vector3.down * mag, ForceMode.Acceleration);
     }
 
     private void ApplyHoverEngine(Vector3 pos)
@@ -68,11 +82,12 @@ public class HoverVehicle : MonoBehaviour
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
-                var heightDifference = Mathf.Abs(HoverHeight - hit.distance)/HoverHeight;
-                addForce = heightDifference*SpringCoefficient*rigidbody.mass;
-                addForce -= rigidbody.GetPointVelocity(pos).y*DampingForce;
+                var heightDifference = Mathf.Abs(HoverHeight - hit.distance) / HoverHeight;
+                addForce = heightDifference * SpringCoefficient * rigidbody.mass;
+                addForce -= rigidbody.GetPointVelocity(pos).y * DampingForce;
             }
-            rigidbody.AddForceAtPosition(addForce*Vector3.up/4f, pos);
+            rigidbody.AddForceAtPosition(addForce * Vector3.up / 4f, pos);
+
         }
     }
 
@@ -80,5 +95,10 @@ public class HoverVehicle : MonoBehaviour
     {
         chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.localRotation * new Vector3(0, 0, -10f), Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
+    }
+
+    private void OnGUI()
+    {
+        GUI.TextArea(new Rect(30, 30, 200, 200), Mathf.Round(rigidbody.velocity.magnitude * 10000) / 10000 + "");
     }
 }
