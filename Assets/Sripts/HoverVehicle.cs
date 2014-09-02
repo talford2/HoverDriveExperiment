@@ -28,7 +28,11 @@ public class HoverVehicle : MonoBehaviour
     public float TurnAcceleration;
     public float MaxTurnVelocity;
 
+    [Range(0f, 1.0f)]
     public float DragMultiplier;
+
+    [Range(0f, 1.0f)]
+    public float ThrustMultiplier;
 
     private void Awake()
     {
@@ -47,14 +51,14 @@ public class HoverVehicle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var forwardThrust = ThrustAcceleration * Input.GetAxis("Vertical");
-        var turnTorque = TurnAcceleration * Input.GetAxis("Horizontal");
+        var forwardThrust = ThrustAcceleration*Input.GetAxis("Vertical");
+        var turnTorque = TurnAcceleration*Input.GetAxis("Horizontal");
 
         if (rigidbody.angularVelocity.magnitude < MaxTurnVelocity)
             rigidbody.AddRelativeTorque(new Vector3(0, turnTorque, 0), ForceMode.Acceleration);
 
         if (rigidbody.velocity.magnitude < MaxThrustVelocity)
-            rigidbody.AddRelativeForce(Vector3.forward * forwardThrust, ForceMode.Acceleration);
+            rigidbody.AddRelativeForce(Vector3.forward*forwardThrust*(1f + ThrustMultiplier), ForceMode.Acceleration);
 
         ApplyHoverEngine(transform.TransformPoint(frontLeft));
         ApplyHoverEngine(transform.TransformPoint(frontRight));
@@ -62,18 +66,8 @@ public class HoverVehicle : MonoBehaviour
         ApplyHoverEngine(transform.TransformPoint(rearRight));
 
         // Drag to mimic wind resistence
-        
-        // Get the current magnitude
         var speed = rigidbody.velocity.magnitude;
-
-        // Apply drag in all directions
-        rigidbody.velocity *= DragMultiplier;
-        
-        // Reduce the drag for the forward direction
-        rigidbody.AddRelativeForce(Vector3.forward * speed * 0.9f, ForceMode.Acceleration);
-
-        // Reduce the drag for the vertical direction
-        rigidbody.AddRelativeForce(Vector3.down * speed, ForceMode.Acceleration);
+        rigidbody.velocity = new Vector3(DragMultiplier*rigidbody.velocity.x, rigidbody.velocity.y, DragMultiplier*rigidbody.velocity.z);
     }
 
     private void ApplyHoverEngine(Vector3 pos)
@@ -84,23 +78,22 @@ public class HoverVehicle : MonoBehaviour
             var addForce = 0f;
             if (hit.distance < HoverHeight)
             {
-                var heightDifference = Mathf.Abs(HoverHeight - hit.distance) / HoverHeight;
-                addForce = heightDifference * SpringCoefficient * rigidbody.mass;
-                addForce -= rigidbody.GetPointVelocity(pos).y * DampingForce;
+                var heightDifference = Mathf.Abs(HoverHeight - hit.distance)/HoverHeight;
+                addForce = heightDifference*SpringCoefficient*rigidbody.mass;
+                addForce -= rigidbody.GetPointVelocity(pos).y*DampingForce;
             }
-            rigidbody.AddForceAtPosition(addForce * Vector3.up / 4f, pos);
-
+            rigidbody.AddForceAtPosition(addForce*Vector3.up/4f, pos);
         }
     }
 
     private void Update()
     {
-        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.localRotation * new Vector3(0, 0, -10f), Time.deltaTime);
+        chaseCamera.transform.position = Vector3.Slerp(chaseCamera.transform.position, transform.position + transform.localRotation*new Vector3(0, 0, -10f), Time.deltaTime);
         chaseCamera.transform.LookAt(transform.position);
     }
 
     private void OnGUI()
     {
-        GUI.TextArea(new Rect(30, 30, 200, 200), Mathf.Round(rigidbody.velocity.magnitude * 10000) / 10000 + "");
+        GUI.TextArea(new Rect(30, 30, 200, 200), Mathf.Round(rigidbody.velocity.magnitude*10000)/10000 + "");
     }
 }
