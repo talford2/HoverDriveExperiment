@@ -21,6 +21,8 @@ public class EditorCameraControl : MonoBehaviour
     private Quaternion rotationOffset;
     private Vector3 positionOffset;
 
+    public Transform FollowObject;
+
     private void Start()
     {
         rotationOffset = Camera.main.transform.rotation;
@@ -44,8 +46,8 @@ public class EditorCameraControl : MonoBehaviour
                 if (isRotateMode)
                 {
                     var delta = Input.mousePosition - mouseOffset;
-                    cameraYaw = cameraYawOffset + 360f*delta.x/Screen.width;
-                    cameraPitch = cameraPitchOffset + 360f*delta.y/Screen.height;
+                    cameraYaw = cameraYawOffset + 360f * delta.x / Screen.width;
+                    cameraPitch = cameraPitchOffset + 360f * delta.y / Screen.height;
                 }
             }
             else
@@ -55,14 +57,18 @@ public class EditorCameraControl : MonoBehaviour
 
             var angle = Quaternion.Euler(rotationOffset.eulerAngles.x - cameraPitch, rotationOffset.eulerAngles.y + cameraYaw, rotationOffset.eulerAngles.z);
 
-            cameraDistance -= Input.GetAxis("Mouse ScrollWheel")*ZoomSensitivity;
-            positionOffset += angle*new Vector3(1f, 0, 0)*Input.GetAxis("Horizontal")*XSensitivity*Time.deltaTime;
-            positionOffset += angle*new Vector3(0, 0, 1f)*Input.GetAxis("Vertical")*ZSensitivity*Time.deltaTime;
+            cameraDistance -= Input.GetAxis("Mouse ScrollWheel") * ZoomSensitivity;
+            positionOffset += angle * new Vector3(1f, 0, 0) * Input.GetAxis("Horizontal") * XSensitivity * Time.deltaTime;
+            positionOffset += angle * new Vector3(0, 0, 1f) * Input.GetAxis("Vertical") * ZSensitivity * Time.deltaTime;
 
             positionOffset.y = Mathf.Clamp(positionOffset.y, 0.2f, 100f);
 
-            Camera.main.transform.position = positionOffset + angle*new Vector3(0, 0, -1f)*cameraDistance;
+            Camera.main.transform.position = positionOffset + angle * new Vector3(0, 0, -1f) * cameraDistance;
             Camera.main.transform.rotation = angle;
         }
+
+        transform.position = Vector3.Slerp(transform.position, FollowObject.position + FollowObject.localRotation * new Vector3(0, 0, -10f), Time.deltaTime);
+        transform.LookAt(FollowObject.position);
+
     }
 }
